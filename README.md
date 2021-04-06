@@ -10,8 +10,12 @@ Change the config on top of s1.py and run s1.py with python 3.6 or higher.
 ![serverinfo bots example](https://cdn.discordapp.com/attachments/722532776523464725/828955160336269332/unknown.png)
 
 fonts used:
+
 [Catamaran - semibold](https://fonts.google.com/specimen/Catamaran?preview.text=CQ&preview.text_type=custom)
+
 [DeJaVu](https://dejavu-fonts.github.io/)
 
+
 API Documentation:
+
 [api.gametools.network](https://api.gametools.network/docs)
