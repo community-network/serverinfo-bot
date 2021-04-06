@@ -38,7 +38,8 @@ GAME = "bf1" # game to use for the bot: bf4/bf1 (bfv doesnt have favorites amoun
 # choose image from the sample files, they will auto-update in code.
 AVATARIMAGE = "avatar_image" #.png - image to show as avatar
 MESSAGEIMAGE = "info_image" #.png - image you want to show in message
-FONT = "DejaVuSans.ttf" # fontfile used in the image
+SMALLFONT = "DejaVuSans.ttf" # fontfile used in the image
+BIGFONT = "Catamaran-SemiBold.ttf"
 
 """BF1 version"""
 # dont change
@@ -168,14 +169,14 @@ async def get_playercount(session):
         tint = Image.new("RGBA", (480, 305), (0, 0, 0, 80))
         img = Image.alpha_composite(img, tint)
 
-        font = ImageFont.truetype("DejaVuSans.ttf", size=130, index=0)
-        smallFont = ImageFont.truetype("DejaVuSans.ttf", size=35, index=0)
-        favoritesFont = ImageFont.truetype("DejaVuSans.ttf", size=60, index=0)
+        font = ImageFont.truetype(BIGFONT, size=130, index=0)
+        smallFont = ImageFont.truetype(SMALLFONT, size=35, index=0)
+        favoritesFont = ImageFont.truetype(SMALLFONT, size=60, index=0)
 
         # draw smallmode
         draw = ImageDraw.Draw(img)
         w, h = draw.textsize(smallmode, font=font)
-        draw.text(((480 - w) / 2, (305 - h - 20) / 2), smallmode, font=font)
+        draw.text(((480 - w) / 2, (305 - h - 50) / 2), smallmode, font=font)
         img.save('map_mode.png')
 
         # get favorites
@@ -219,6 +220,7 @@ async def get_playercount(session):
 if __name__ == "__main__":
     assert sys.version_info >= (3, 6), "Script requires Python 3.6+"
     assert BOT_TOKEN and NAME, "Config is empty, pls fix"
-    assert os.path.exists(FONT), "fontfile not found"
+    assert os.path.exists(BIGFONT), "fontfile not found"
+    assert os.path.exists(SMALLFONT), "fontfile not found"
     print("Initiating bot")
     LivePlayercountBot().run(BOT_TOKEN)
