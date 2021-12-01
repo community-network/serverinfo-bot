@@ -12,9 +12,6 @@ ENV channel default_channel_value
 ENV minplayeramount '20'
 ENV prevrequestcount '5'
 ENV startedamount '50'
-ENV guild default_guild_value
-ENV lang 'en-us'
-ENV guid 'false'
 
 RUN pip install --no-cache-dir aiohttp discord urllib3 Pillow
 

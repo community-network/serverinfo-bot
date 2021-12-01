@@ -13,31 +13,26 @@ import sys
 from PIL import Image, ImageFont, ImageDraw
 
 # # to run as docker image:
-# BOT_TOKEN = os.environ['token']
-# NAME = os.environ['name']
-# GUID = os.environ['guid']
-# MESSAGE_CHANNEL = int(os.environ['channel'])
-# MIN_PLAYER_AMOUNT = int(os.environ['minplayeramount'])
-# AMOUNT_OF_PREVIOUS_REQUESTS = int(os.environ['prevrequestcount'])
-# STARTED_AMOUNT = int(os.environ['startedamount'])
-# GUILD = int(os.environ['guild'])
-# LANG = os.environ['lang']
+BOT_TOKEN = os.environ['token']
+NAME = os.environ['name']
+MESSAGE_CHANNEL = int(os.environ['channel'])
+MIN_PLAYER_AMOUNT = int(os.environ['minplayeramount'])
+AMOUNT_OF_PREVIOUS_REQUESTS = int(os.environ['prevrequestcount'])
+STARTED_AMOUNT = int(os.environ['startedamount'])
 
 #config
-BOT_TOKEN = ""  # https://github.com/reactiflux/discord-irc/wiki/Creating-a-discord-bot-&-getting-a-token
-NAME = '[BoB]#2 EU' # name of the server it needs to search for
+# BOT_TOKEN = ""  # https://github.com/reactiflux/discord-irc/wiki/Creating-a-discord-bot-&-getting-a-token
+# NAME = '[BOB] GUNMASTER' # name of the server it needs to search for
 
 # extra's:
-MESSAGE_CHANNEL = 0 # channel where it needs to post the message if almost empty etc.
-MIN_PLAYER_AMOUNT = 20 # amount of change needed to count
-AMOUNT_OF_PREVIOUS_REQUESTS = 5 # amount of request to use for the calculation if the difference is more thatn min_player_amount
-STARTED_AMOUNT = 50 # amount of players before it calls the server "started"
-GUILD = 0 # discord group id where is needs to post the message
-LANG = "en-us" # language for the mapname etc.
-GAME = "bf1" # game to use for the bot: bf4/bf1 (bfv doesnt have favorites amount visable)
+# MESSAGE_CHANNEL = 0 # channel where it needs to post the message if almost empty etc.
+# MIN_PLAYER_AMOUNT = 20 # amount of change needed to count
+# AMOUNT_OF_PREVIOUS_REQUESTS = 5 # amount of request to use for the calculation if the difference is more thatn min_player_amount
+# STARTED_AMOUNT = 50 # amount of players before it calls the server "started"
+# GUILD = 0 # discord group id where is needs to post the message
 # choose image from the sample files, they will auto-update in code.
-AVATARIMAGE = "avatar_image" #.png - image to show as avatar
-MESSAGEIMAGE = "info_image" #.png - image you want to show in message
+AVATARIMAGE = "map_mode" #.png - image to show as avatar
+MESSAGEIMAGE = "map_mode" #.png - image you want to show in message
 SMALLFONT = "DejaVuSans.ttf" # fontfile used in the image
 BIGFONT = "Catamaran-SemiBold.ttf"
 
@@ -117,7 +112,7 @@ async def createMessage(self, image_url, newstatus, title, description):
 
 async def get_playercount(session):
     try:
-        url = f"https://api.gametools.network/{GAME}/detailedserver?name={urllib.parse.quote(NAME)}&lang={LANG}"
+        url = f"https://api.gametools.network/bf2042/servers/?name={urllib.parse.quote(NAME)}&limit=1"
         async with session.get(url=url) as r:
             response = await r.json()
     except Exception as e:
@@ -125,17 +120,21 @@ async def get_playercount(session):
         return
     
     try:
-        players = response['playerAmount']
-        maxPlayers = response['maxPlayerAmount']
-        inQue = response['inQueue']
-        serverMap = response['currentMap']
+        players = response["servers"][0]['playerAmount']
+        maxPlayers = response["servers"][0]['maxPlayers']
+        inQue = response["servers"][0]['inQue']
+        serverMap = response["servers"][0]['currentMap']
+        if inQue == None:
+            inQue = 0
+            serverInfo = f"{players}/{maxPlayers} - {serverMap}"  # discord status message
+        else:
+            serverInfo = f"{players}/{maxPlayers} [{inQue}] - {serverMap}"  # discord status message
 
         # dont allow names longer than 30 characters
-        prefix = response['prefix'][0:30]
-        serverInfo = f"{players}/{maxPlayers} [{inQue}] - {serverMap}"  # discord status message
+        prefix = response["servers"][0]['prefix'][0:30]
 
         # create image with only map
-        url = response['currentMapImage']
+        url = response["servers"][0]['url']
         async with session.get(url=url) as r:
             image = await r.read()
         file = open("map_image.png", "wb")
@@ -143,72 +142,31 @@ async def get_playercount(session):
         file.close()
 
         # create image with mapmode
-        mode = response['mode']
+        mode = response["servers"][0]['mode']
         smallmode = ""
         if mode == "Conquest":
             smallmode = "CQ"
-        elif mode == "Domination":
-            smallmode = "DM"
-        elif mode == "TugOfWar":
-            smallmode = "FL"
+        elif mode == "Conquest large":
+            smallmode = "CL"
         elif mode == "Rush":
             smallmode = "RS"
-        elif mode == "BreakthroughLarge":
-            smallmode = "OP"
-        elif mode == "Breakthrough":
-            smallmode = "SO"
-        elif mode == "Possession":
-            smallmode = "WP"
-        elif mode == "TeamDeathMatch":
-            smallmode = "TM"
+        elif mode == "Custom":
+            smallmode = "CM"
 
         #creating the images:
         img = Image.open("map_image.png")
         img = img.convert("RGBA")
 
-        tint = Image.new("RGBA", (480, 305), (0, 0, 0, 80))
+        tint = Image.new("RGBA", (300, 146), (0, 0, 0, 80))
         img = Image.alpha_composite(img, tint)
 
-        font = ImageFont.truetype(BIGFONT, size=130, index=0)
-        smallFont = ImageFont.truetype(SMALLFONT, size=35, index=0)
-        favoritesFont = ImageFont.truetype(SMALLFONT, size=60, index=0)
+        font = ImageFont.truetype(BIGFONT, size=75, index=0)
 
         # draw smallmode
         draw = ImageDraw.Draw(img)
         w, h = draw.textsize(smallmode, font=font)
-        draw.text(((480 - w) / 2, (305 - h - 50) / 2), smallmode, font=font)
+        draw.text(((300 - w) / 2, (146 - h) / 3), smallmode, font=font)
         img.save('map_mode.png')
-
-        # get favorites
-        serverBookmarkCount = response['favorites']
-
-        # draw bookmark
-        img = Image.open("map_mode.png")
-        draw = ImageDraw.Draw(img) 
-        serverCountMessage = u"\u2605" + serverBookmarkCount
-        w, h = draw.textsize(serverCountMessage, font=smallFont)
-        draw.text(((480 - w) / 2 - 40, (305 - h + 160) / 2), serverCountMessage, font=smallFont)
-        img.save('avatar_image.png')
-
-        # draw infoImage
-        img = Image.open("map_mode.png")
-        draw = ImageDraw.Draw(img) 
-        serverCountMessage = u"\u2605" + serverBookmarkCount
-        w, h = draw.textsize(serverCountMessage, font=smallFont)
-        draw.text(((480 - w) / 2 , (305 - h + 160) / 2), serverCountMessage, font=smallFont)
-        img.save('info_image.png')
-
-        # draw bookmark
-        img = Image.open("map_image.png")
-        img = img.convert("RGBA")
-
-        tint = Image.new("RGBA", (480, 305), (0, 0, 0, 80))
-        img = Image.alpha_composite(img, tint)
-        draw = ImageDraw.Draw(img) 
-        serverCountMessage = u"\u2605" + serverBookmarkCount
-        w, h = draw.textsize(serverCountMessage, font=favoritesFont)
-        draw.text(((480 - w) / 2, (305 - h) / 2), serverCountMessage, font=favoritesFont)
-        img.save('only_favorites_image.png')
 
         return {"serverInfo": serverInfo, "serverName": prefix, "serverMap": serverMap, "playerAmount": inQue+players}
 
