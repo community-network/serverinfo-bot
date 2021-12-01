@@ -27,6 +27,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: bf2042
 
       - name: Build image
         run: docker build . --file Dockerfile --tag $IMAGE_NAME
