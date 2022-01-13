@@ -157,7 +157,7 @@ async def get_playercount(session):
         img = Image.open("map_image.png")
         img = img.convert("RGBA")
 
-        tint = Image.new("RGBA", (300, 146), (0, 0, 0, 80))
+        tint = Image.new("RGBA", (img.width, img.height), (0, 0, 0, 80))
         img = Image.alpha_composite(img, tint)
 
         font = ImageFont.truetype(BIGFONT, size=75, index=0)
@@ -165,7 +165,7 @@ async def get_playercount(session):
         # draw smallmode
         draw = ImageDraw.Draw(img)
         w, h = draw.textsize(smallmode, font=font)
-        draw.text(((300 - w) / 2, (146 - h) / 3), smallmode, font=font)
+        draw.text(((img.width - w) / 2, (img.height - h) / 3), smallmode, font=font)
         img.save('map_mode.png')
 
         return {"serverInfo": serverInfo, "serverName": prefix, "serverMap": serverMap, "playerAmount": inQue+players}
