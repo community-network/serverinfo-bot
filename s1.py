@@ -25,7 +25,7 @@ from PIL import Image, ImageFont, ImageDraw
 
 #config
 BOT_TOKEN = ""  # https://github.com/reactiflux/discord-irc/wiki/Creating-a-discord-bot-&-getting-a-token
-NAME = '[BoB]#2 EU' # name of the server it needs to search for
+NAME = '' # name of the server it needs to search for
 
 # extra's:
 MESSAGE_CHANNEL = 0 # channel where it needs to post the message if almost empty etc.
@@ -34,7 +34,7 @@ AMOUNT_OF_PREVIOUS_REQUESTS = 5 # amount of request to use for the calculation i
 STARTED_AMOUNT = 50 # amount of players before it calls the server "started"
 GUILD = 0 # discord group id where is needs to post the message
 LANG = "en-us" # language for the mapname etc.
-GAME = "bf1" # game to use for the bot: bf4/bf1 (bfv doesnt have favorites amount visable)
+GAME = "bfv" # game to use for the bot: bf4/bf1 (bfv doesnt have favorites amount visable)
 # choose image from the sample files, they will auto-update in code.
 AVATARIMAGE = "avatar_image" #.png - image to show as avatar
 MESSAGEIMAGE = "info_image" #.png - image you want to show in message
@@ -166,7 +166,7 @@ async def get_playercount(session):
         img = Image.open("map_image.png")
         img = img.convert("RGBA")
 
-        tint = Image.new("RGBA", (480, 305), (0, 0, 0, 80))
+        tint = Image.new("RGBA", (img.width, img.height), (0, 0, 0, 80))
         img = Image.alpha_composite(img, tint)
 
         font = ImageFont.truetype(BIGFONT, size=130, index=0)
@@ -176,38 +176,41 @@ async def get_playercount(session):
         # draw smallmode
         draw = ImageDraw.Draw(img)
         w, h = draw.textsize(smallmode, font=font)
-        draw.text(((480 - w) / 2, (305 - h - 50) / 2), smallmode, font=font)
+        draw.text(((img.width - w) / 2, (img.height - h - 50) / 2), smallmode, font=font)
         img.save('map_mode.png')
 
         # get favorites
-        serverBookmarkCount = response['favorites']
+        if GAME != "bfv":
+            serverBookmarkCount = response['favorites']
 
-        # draw bookmark
-        img = Image.open("map_mode.png")
-        draw = ImageDraw.Draw(img) 
-        serverCountMessage = u"\u2605" + serverBookmarkCount
-        w, h = draw.textsize(serverCountMessage, font=smallFont)
-        draw.text(((480 - w) / 2 - 40, (305 - h + 160) / 2), serverCountMessage, font=smallFont)
+            # draw bookmark
+            img = Image.open("map_mode.png")
+            draw = ImageDraw.Draw(img) 
+            serverCountMessage = u"\u2605" + serverBookmarkCount
+            w, h = draw.textsize(serverCountMessage, font=smallFont)
+            draw.text(((img.width - w) / 2 - 40, (img.height - h + 160) / 2), serverCountMessage, font=smallFont)
         img.save('avatar_image.png')
 
         # draw infoImage
         img = Image.open("map_mode.png")
         draw = ImageDraw.Draw(img) 
-        serverCountMessage = u"\u2605" + serverBookmarkCount
-        w, h = draw.textsize(serverCountMessage, font=smallFont)
-        draw.text(((480 - w) / 2 , (305 - h + 160) / 2), serverCountMessage, font=smallFont)
+        if GAME != "bfv":
+            serverCountMessage = u"\u2605" + serverBookmarkCount
+            w, h = draw.textsize(serverCountMessage, font=smallFont)
+            draw.text(((img.width - w) / 2 , (img.height - h + 160) / 2), serverCountMessage, font=smallFont)
         img.save('info_image.png')
 
         # draw bookmark
         img = Image.open("map_image.png")
         img = img.convert("RGBA")
 
-        tint = Image.new("RGBA", (480, 305), (0, 0, 0, 80))
+        tint = Image.new("RGBA", (img.width, img.height), (0, 0, 0, 80))
         img = Image.alpha_composite(img, tint)
         draw = ImageDraw.Draw(img) 
-        serverCountMessage = u"\u2605" + serverBookmarkCount
-        w, h = draw.textsize(serverCountMessage, font=favoritesFont)
-        draw.text(((480 - w) / 2, (305 - h) / 2), serverCountMessage, font=favoritesFont)
+        if GAME != "bfv":
+            serverCountMessage = u"\u2605" + serverBookmarkCount
+            w, h = draw.textsize(serverCountMessage, font=favoritesFont)
+            draw.text(((img.width - w) / 2, (img.height - h) / 2), serverCountMessage, font=favoritesFont)
         img.save('only_favorites_image.png')
 
         return {"serverInfo": serverInfo, "serverName": prefix, "serverMap": serverMap, "playerAmount": inQue+players}
