@@ -175,7 +175,7 @@ async def get_playercount(session):
 
         # draw smallmode
         draw = ImageDraw.Draw(img)
-        w, h = draw.textsize(smallmode, font=font)
+        _, _, w, h = draw.textbbox((0, 0), smallmode, font=font)
         draw.text(((img.width - w) / 2, (img.height - h - 50) / 2), smallmode, font=font)
         img.save('map_mode.png')
 
@@ -187,7 +187,7 @@ async def get_playercount(session):
             img = Image.open("map_mode.png")
             draw = ImageDraw.Draw(img) 
             serverCountMessage = u"\u2605" + serverBookmarkCount
-            w, h = draw.textsize(serverCountMessage, font=smallFont)
+            _, _, w, h = draw.textbbox((0, 0), serverCountMessage, font=smallFont)
             draw.text(((img.width - w) / 2 - 40, (img.height - h + 160) / 2), serverCountMessage, font=smallFont)
         img.save('avatar_image.png')
 
@@ -196,7 +196,7 @@ async def get_playercount(session):
         draw = ImageDraw.Draw(img) 
         if GAME != "bfv":
             serverCountMessage = u"\u2605" + serverBookmarkCount
-            w, h = draw.textsize(serverCountMessage, font=smallFont)
+            _, _, w, h = draw.textbbox((0, 0), serverCountMessage, font=smallFont)
             draw.text(((img.width - w) / 2 , (img.height - h + 160) / 2), serverCountMessage, font=smallFont)
         img.save('info_image.png')
 
@@ -209,7 +209,7 @@ async def get_playercount(session):
         draw = ImageDraw.Draw(img) 
         if GAME != "bfv":
             serverCountMessage = u"\u2605" + serverBookmarkCount
-            w, h = draw.textsize(serverCountMessage, font=favoritesFont)
+            _, _, w, h = draw.textbbox((0, 0), serverCountMessage, font=favoritesFont)
             draw.text(((img.width - w) / 2, (img.height - h) / 2), serverCountMessage, font=favoritesFont)
         img.save('only_favorites_image.png')
 
@@ -226,4 +226,5 @@ if __name__ == "__main__":
     assert os.path.exists(BIGFONT), "fontfile not found"
     assert os.path.exists(SMALLFONT), "fontfile not found"
     print("Initiating bot")
-    LivePlayercountBot().run(BOT_TOKEN)
+    intents = discord.Intents.default()
+    LivePlayercountBot(intents=intents).run(BOT_TOKEN)
