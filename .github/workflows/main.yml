@@ -26,9 +26,11 @@ jobs:
     if: github.event_name == 'push'
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: bf2042
+      - uses: jpribyl/action-docker-layer-caching@v0.1.1
+        continue-on-error: true
 
       - name: Build image
         run: docker build . --file Dockerfile --tag $IMAGE_NAME
