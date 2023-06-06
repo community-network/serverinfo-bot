@@ -39,6 +39,7 @@ LANG = "en-us"  # language for the mapname etc.
 GAME = (
     "bf1"  # game to use for the bot: bf4/bf1 (bfv doesnt have favorites amount visable)
 )
+NO_BOTS = False
 # choose image from the sample files, they will auto-update in code.
 AVATARIMAGE = "avatar_image"  # .png - image to show as avatar
 MESSAGEIMAGE = "info_image"  # .png - image you want to show in message
@@ -171,7 +172,11 @@ async def get_playercount(session):
             async with session.get(url=url) as r:
                 response = await r.json()
                 # results
-                players = response.get("playerAmount", 0)
+                players = (
+                    response.get("noBotsPlayerAmount", 0)
+                    if NO_BOTS and GAME == "bf4"
+                    else response.get("playerAmount", 0)
+                )
                 maxPlayers = response.get("maxPlayerAmount", 0)
                 inQue = response.get("inQueue", 0)
                 serverMap = response.get("currentMap", "")
