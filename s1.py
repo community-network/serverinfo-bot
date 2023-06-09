@@ -17,7 +17,6 @@ from PIL import Image, ImageFont, ImageDraw
 # # to run as docker image:
 # BOT_TOKEN = os.environ['token']
 # NAME = os.environ['name']
-# GUID = os.environ['guid']
 # MESSAGE_CHANNEL = int(os.environ['channel'])
 # MIN_PLAYER_AMOUNT = int(os.environ['minplayeramount'])
 # AMOUNT_OF_PREVIOUS_REQUESTS = int(os.environ['prevrequestcount'])
