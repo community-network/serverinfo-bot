@@ -14,36 +14,37 @@ import sys
 # image stuff
 from PIL import Image, ImageFont, ImageDraw
 
-# # to run as docker image:
-# BOT_TOKEN = os.environ['token']
-# NAME = os.environ['name']
-# MESSAGE_CHANNEL = int(os.environ['channel'])
-# MIN_PLAYER_AMOUNT = int(os.environ['minplayeramount'])
-# AMOUNT_OF_PREVIOUS_REQUESTS = int(os.environ['prevrequestcount'])
-# STARTED_AMOUNT = int(os.environ['startedamount'])
-# GUILD = int(os.environ['guild'])
-# LANG = os.environ['lang']
+# for docker image, use first value in "getenv" as key,
+# if you want to run in python, use the empty field behind it to set the variable
+# https://github.com/reactiflux/discord-irc/wiki/Creating-a-discord-bot-&-getting-a-token
+BOT_TOKEN = os.getenv("token", "")
+# name of the server it needs to search for
+NAME = os.getenv("name", "")
 
-# config
-BOT_TOKEN = ""  # https://github.com/reactiflux/discord-irc/wiki/Creating-a-discord-bot-&-getting-a-token
-NAME = ""  # name of the server it needs to search for
-
-# extra's:
-MESSAGE_CHANNEL = 0  # channel where it needs to post the message if almost empty etc.
-MIN_PLAYER_AMOUNT = 20  # amount of change needed to count
-AMOUNT_OF_PREVIOUS_REQUESTS = 5  # amount of request to use for the calculation if the difference is more thatn min_player_amount
-STARTED_AMOUNT = 50  # amount of players before it calls the server "started"
-GUILD = 0  # discord group id where is needs to post the message
-LANG = "en-us"  # language for the mapname etc.
-GAME = (
-    "bf1"  # game to use for the bot: bf4/bf1 (bfv doesnt have favorites amount visable)
-)
-NO_BOTS = False
+# optional
+# channel where it needs to post the message if almost empty etc.
+MESSAGE_CHANNEL = int(os.getenv("channel", 0))
+# amount of change needed to count
+MIN_PLAYER_AMOUNT = int(os.getenv("minplayeramount", 20))
+# amount of request to use for the calculation if the difference is more thatn min_player_amount
+AMOUNT_OF_PREVIOUS_REQUESTS = int(os.getenv("prevrequestcount", 5))
+# amount of players before it calls the server "started"
+STARTED_AMOUNT = int(os.getenv("startedamount", 50))
+# discord group id where is needs to post the message
+GUILD = int(os.getenv("guild", 0))
+# language for the mapname etc.
+LANG = os.getenv("lang", "en-us")
+# game to use for the bot: bf4/bf1 (bfv doesnt have favorites amount visable)
+GAME = os.getenv("game", "bf1")
 # choose image from the sample files, they will auto-update in code.
-AVATARIMAGE = "avatar_image"  # .png - image to show as avatar
-MESSAGEIMAGE = "info_image"  # .png - image you want to show in message
-SMALLFONT = "DejaVuSans.ttf"  # fontfile used in the image
-BIGFONT = "Catamaran-SemiBold.ttf"
+NO_BOTS = os.getenv("nobots", False)
+# .png - image to show as avatar
+AVATARIMAGE = os.getenv("avatarimage", "avatar_image")
+# .png - image you want to show in message
+MESSAGEIMAGE = os.getenv("infoimage", "info_image")
+# fontfile used in the image
+SMALLFONT = os.getenv("smallfont", "DejaVuSans.ttf")
+BIGFONT = os.getenv("bigfont", "Catamaran-SemiBold.ttf")
 
 """BF1 version"""
 # dont change
@@ -152,7 +153,7 @@ class LivePlayercountBot(discord.Client):
                 await asyncio.sleep(120)
 
 
-async def createMessage(self, image_url, newstatus, title, description):
+async def createMessage(self, image_url: str, newstatus, title: str, description: str):
     file = discord.File(f"{image_url}.png", filename=f"{image_url}.png")
     channel = self.get_channel(MESSAGE_CHANNEL)
     embed = discord.Embed(color=0xFFA500, title=title, description=description)
@@ -164,7 +165,7 @@ async def createMessage(self, image_url, newstatus, title, description):
     await channel.send(embed=embed, file=file)
 
 
-async def get_playercount(session):
+async def get_playercount(session: aiohttp.ClientSession):
     if GAME in ["bf2042", "bfv", "bf1", "bf4", "bf3", "bfh"]:
         try:
             url = f"https://api.gametools.network/{GAME}/detailedserver?name={urllib.parse.quote(NAME)}&lang={LANG}"
@@ -254,6 +255,7 @@ async def get_playercount(session):
         )
         img.save("map_mode.png")
 
+        serverBookmarkCount = 0
         # get favorites
         if GAME in ["bf2042", "bf1", "bf4", "bf3", "bfh"]:
             serverBookmarkCount = response.get("favorites", 0)
@@ -274,7 +276,7 @@ async def get_playercount(session):
         img = Image.open("map_mode.png")
         draw = ImageDraw.Draw(img)
         if GAME in ["bf2042", "bf1", "bf4", "bf3", "bfh"]:
-            serverCountMessage = "\u2605" + serverBookmarkCount
+            serverCountMessage = f"\u2605{serverBookmarkCount}"
             _, _, w, h = draw.textbbox((0, 0), serverCountMessage, font=smallFont)
             draw.text(
                 ((img.width - w) / 2, (img.height - h + 160) / 2),
@@ -291,7 +293,7 @@ async def get_playercount(session):
         img = Image.alpha_composite(img, tint)
         draw = ImageDraw.Draw(img)
         if GAME in ["bf2042", "bf1", "bf4", "bf3", "bfh"]:
-            serverCountMessage = "\u2605" + serverBookmarkCount
+            serverCountMessage = f"\u2605{serverBookmarkCount}"
             _, _, w, h = draw.textbbox((0, 0), serverCountMessage, font=favoritesFont)
             draw.text(
                 ((img.width - w) / 2, (img.height - h) / 2),
